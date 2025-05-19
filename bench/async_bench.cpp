@@ -162,6 +162,9 @@ void bench_mt(int howmany, std::shared_ptr<spdlog::logger> logger, int thread_co
         t.join();
     }
 
+    // 等待所有异步日志处理完毕
+    logger->flush();
+
     auto delta = high_resolution_clock::now() - start;
     auto delta_d = duration_cast<duration<double>>(delta).count();
     spdlog::info("Elapsed: {} secs\t {:L}/sec", delta_d, int(howmany / delta_d));
