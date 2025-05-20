@@ -80,6 +80,7 @@ public:
     thread_pool(size_t q_max_items, size_t threads_n);
 
     // message all threads to terminate gracefully and join them
+    void shutdown();
     ~thread_pool();
 
     thread_pool(const thread_pool &) = delete;

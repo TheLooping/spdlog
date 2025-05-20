@@ -28,6 +28,7 @@ namespace ring_buf_
     class alignas(CACHELINE_SIZE) ring_buffer
     {
     public:
+        using value_type = T;
         explicit ring_buffer(size_t capacity);
         ring_buffer(const ring_buffer &) = delete;
         ring_buffer &operator=(const ring_buffer &) = delete;
@@ -59,11 +60,11 @@ namespace ring_buf_
         alignas(CACHELINE_SIZE) char pad5[CACHELINE_SIZE - sizeof(std::atomic<size_t>)];
         
 
-        alignas(CACHELINE_SIZE) std::unique_ptr<T[]> buffer_;
+        alignas(CACHELINE_SIZE) std::atomic<size_t> overrun_counter_;
         alignas(CACHELINE_SIZE) char pad6[CACHELINE_SIZE - sizeof(std::atomic<size_t>)];
 
-        alignas(CACHELINE_SIZE) std::atomic<size_t> overrun_counter_;
-        alignas(CACHELINE_SIZE) char pad7[CACHELINE_SIZE - sizeof(std::atomic<size_t>)];
+        alignas(CACHELINE_SIZE) std::vector<T> buffer_;
+
 
     };
 
@@ -75,7 +76,7 @@ namespace ring_buf_
         prod_tail_.store(0);
         cons_head_.store(0);
         overrun_counter_.store(0);
-        buffer_ = std::unique_ptr<T[]>(new T[capacity]);
+        buffer_ = std::vector<T>(capacity);
     }
     template <typename T>
     bool ring_buffer<T>::full(){

@@ -110,7 +110,8 @@ int main(int argc, char *argv[]) {
             auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename, true);
             auto logger = std::make_shared<async_logger>(
                 "async_logger", std::move(file_sink), std::move(tp), async_overflow_policy::block);
-            bench_mt(howmany, std::move(logger), threads);
+            bench_mt(howmany, logger, threads);
+            tp->shutdown();
             // verify_file(filename, howmany);
         }
 
@@ -126,7 +127,8 @@ int main(int argc, char *argv[]) {
             auto logger =
                 std::make_shared<async_logger>("async_logger", std::move(file_sink), std::move(tp),
                                                async_overflow_policy::overrun_oldest);
-            bench_mt(howmany, std::move(logger), threads);
+            bench_mt(howmany, logger, threads);
+            tp->shutdown();
         }
         spdlog::shutdown();
     } catch (std::exception &ex) {
@@ -161,9 +163,6 @@ void bench_mt(int howmany, std::shared_ptr<spdlog::logger> logger, int thread_co
     for (auto &t : threads) {
         t.join();
     }
-
-    // 等待所有异步日志处理完毕
-    logger->flush();
 
     auto delta = high_resolution_clock::now() - start;
     auto delta_d = duration_cast<duration<double>>(delta).count();

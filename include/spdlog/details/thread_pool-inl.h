@@ -43,10 +43,16 @@ SPDLOG_INLINE thread_pool::thread_pool(size_t q_max_items, size_t threads_n)
 // message all threads to terminate gracefully join them
 SPDLOG_INLINE thread_pool::~thread_pool() {
     SPDLOG_TRY {
+        shutdown();
+    }
+    SPDLOG_CATCH_STD
+}
+
+SPDLOG_INLINE void thread_pool::shutdown() {
+    SPDLOG_TRY {
         for (size_t i = 0; i < threads_.size(); i++) {
             post_async_msg_(async_msg(async_msg_type::terminate), async_overflow_policy::block);
         }
-
         for (auto &t : threads_) {
             t.join();
         }
